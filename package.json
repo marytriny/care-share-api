@@ -1,0 +1,20 @@
+{
+  "name": "care-share-api",
+  "version": "1.0.0",
+  "description": "Server API for CareShare Web App",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marytriny/care-share-api"
+  },
+  "author": "Maria Trinidad Guerra",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^10.0.1"
+  }
+}
