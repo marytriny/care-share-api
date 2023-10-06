@@ -47,7 +47,6 @@ app.post('/auth/signin', async (req, res) => {
 
     // Get user data from DB using email
     const user = await sqlClient.getAccount(email);
-    console.log(user.recordset[0]);
     if (!user.recordset[0]) {
       res.status(400).json({ msg: 'Invalid Email Or Password' });
       return;
@@ -79,14 +78,14 @@ app.get('/auth/me', async (req, res) => {
   try {
     const token = String(req?.headers?.authorization?.replace('Bearer ', ''));
     const decoded = jwt.verify(token, JWT_SECRET);
-    const getUserResponse = await gqlClient.request(GetUserByEmailQuery, { email: decoded.email });
-    const { nextUser } = getUserResponse;
-    if (!nextUser) {
+    const user = await sqlClient.getAccount(decoded.email);
+    if (!user.recordset[0]) {
       res.status(400).json(defaultReturnObject);
       return;
     }
-    delete nextUser.password
-    res.status(200).json({ authenticated: true, user: nextUser });
+
+    delete user.recordset[0].password_hash;
+    res.status(200).json({ authenticated: true, user: user.recordset[0] });
   }
   catch (err) {
     console.log('POST auth/me, Something Went Wrong', err);

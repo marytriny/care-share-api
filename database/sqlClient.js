@@ -28,6 +28,9 @@ module.exports = class SqlClient {
   }
 
   async getAccount(email) {
-    return this._query(`SELECT id, password_hash FROM Accounts WHERE email = '${email}'`);
+    return this._query(
+      `SELECT id, role, organization, active, password_hash 
+      FROM Accounts WHERE email = '${email}'`
+    );
   }
 }
