@@ -14,14 +14,38 @@ const PORT = 9000;
 const JWT_SECRET = 'abracadabra';
 const JWT_EXPIRES_IN = '1 day';
 
-app.post('/signup', (req, res) => {
-  sqlClient.addAccount(req)
-    .then(response => res.status(200).send(response))
-    .catch(error => res.status(500).send(error))
-})
+/******************************************************************************
+ * ACCOUNT TABLE QUERIES
+ ******************************************************************************/
+// UPDATE USER
+app.post('/account/update', async (req, res) => {
+  try {
+    // Update user data in DB
+    await sqlClient.updateAccount(req.body);
+    res.status(200).send({ message: 'success' });
+  } 
+  catch (err) {
+    console.log('POST update, Something Went Wrong: ', err);
+    res.status(400).send({ error: true, message: err.message });
+  }
+});
 
-// SIGN UP
-app.post('/auth/signup', async (req, res) => {
+// UPDATE PASSWORD
+app.post('/account/updatePassword', async (req, res) => {
+  try {
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(req.body.password, 8);
+    await sqlClient.updateAccountPassword(req.body.id, hashedPassword);
+    res.status(200).send({ message: 'success' });
+  } 
+  catch (err) {
+    console.log('POST update, Something Went Wrong: ', err);
+    res.status(400).send({ error: true, message: err.message });
+  }
+});
+
+// SIGN UP / ADD USER
+app.post('/account/signup', async (req, res) => {
   try {
     // Hash the password
     const hashedPassword = await bcrypt.hash(req.body.password, 8);
@@ -35,13 +59,13 @@ app.post('/auth/signup', async (req, res) => {
     res.send({ user: userData, token });
   } 
   catch (err) {
-    console.log('POST auth/signup, Something Went Wrong: ', err);
+    console.log('POST account/signup, Something Went Wrong: ', err);
     res.status(400).send({ error: true, message: err.message });
   }
 });
 
 // SIGN IN
-app.post('/auth/signin', async (req, res) => {
+app.post('/account/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -67,13 +91,13 @@ app.post('/auth/signin', async (req, res) => {
     res.status(200).json({ token });
   } 
   catch (err) {
-    console.log('POST auth/signin, Something Went Wrong: ', err);
+    console.log('POST account/signin, Something Went Wrong: ', err);
     res.status(400).send({ error: true, message: err.message });
   }
 })
 
 // GET USER FROM TOKEN
-app.get('/auth/me', async (req, res) => {
+app.get('/account/me', async (req, res) => {
   const defaultReturnObject = { authenticated: false, user: null };
   try {
     const token = String(req?.headers?.authorization?.replace('Bearer ', ''));
@@ -88,7 +112,7 @@ app.get('/auth/me', async (req, res) => {
     res.status(200).json({ authenticated: true, user: user.recordset[0] });
   }
   catch (err) {
-    console.log('POST auth/me, Something Went Wrong', err);
+    console.log('POST account/me, Something Went Wrong', err);
     res.status(400).json(defaultReturnObject);
   }
 })
