@@ -1,3 +1,4 @@
+// Import packages
 const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
@@ -33,9 +34,25 @@ app.post('/account/update', async (req, res) => {
 // UPDATE PASSWORD
 app.post('/account/updatePassword', async (req, res) => {
   try {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(req.body.password, 8);
-    await sqlClient.updateAccountPassword(req.body.id, hashedPassword);
+    const { email, id, current_password, password } = req.body;
+
+    // Get user data from DB using email
+    const user = await sqlClient.getAccount(email);
+    if (!user.recordset[0]) {
+      res.status(400).json({ msg: 'Invalid Email Or Password' });
+      return;
+    }
+
+    // Validate current password
+    const isMatch = await bcrypt.compare(current_password, user.recordset[0].password_hash);
+    if (!isMatch) {
+      res.status(400).json({ msg: 'Invalid Email Or Password' });
+      return;
+    }
+
+    // Hash the new password and update DB
+    const hashedPassword = await bcrypt.hash(password, 8);
+    await sqlClient.updateAccountPassword(id, hashedPassword);
     res.status(200).send({ message: 'success' });
   } 
   catch (err) {
