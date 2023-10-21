@@ -134,4 +134,37 @@ app.get('/account/me', async (req, res) => {
   }
 })
 
+/******************************************************************************
+ * DONATIONS TABLE QUERIES
+ ******************************************************************************/
+app.post('/donation', async (req, res) => {
+  sqlClient.addDonation(req.body)
+    .then(response => res.status(200).send(response))
+    .catch(error => res.status(500).send(error))
+});
+
+app.put('/donation', (req, res) =>
+  postgres.updateDonation(req)
+    .then(response => res.status(200).send(response))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.put('/donation/status', (req, res) =>
+  postgres.updateDonationStatus(req)
+    .then(response => res.status(200).send(response))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.get('/donation', (req, res) =>
+  sqlClient.getDonations(req)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.get('/donation:donor', (req, res) =>
+  sqlClient.getDonation(req.params.donor)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
 app.listen(PORT, () => console.log('API is running on port ', PORT));

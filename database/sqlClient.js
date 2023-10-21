@@ -15,6 +15,9 @@ module.exports = class SqlClient {
     }
   }
 
+  /****************************************************************************
+   * Query Accounts table
+   ****************************************************************************/
   async getAccounts() {
     return this._query('SELECT * FROM Accounts');
   }
@@ -40,7 +43,6 @@ module.exports = class SqlClient {
   }
 
   async updateAccount(user) {
-    console.log(user)
     const { id, role, email, organization, address, city, state, zip_code, 
       phone, poc_name, poc_phone } = user;
 
@@ -57,5 +59,50 @@ module.exports = class SqlClient {
       `UPDATE Accounts SET password_hash='${password_hash}'
       WHERE id = ${id}`
     );
+  }
+  
+  /****************************************************************************
+   * Query Donations table
+   ****************************************************************************/
+  async addDonation(donation) {
+    const { item, quantity, donor, address, city, state, zip_code, poc_name, 
+      poc_phone, notes, from_date, to_date } = donation;
+
+    return this._query(
+      `INSERT INTO Donations (item, quantity, donor, address, city, state,
+        zip_code, poc_name, poc_phone, notes, from_date, to_date, status)
+      VALUES ( '${item}', ${Number(quantity)}, '${donor}', '${address}',
+      '${city}', '${state}', '${zip_code}', '${poc_name}', '${poc_phone}', 
+      '${notes}', '${from_date}', '${to_date}', 'PENDING' )`
+    );
+  }
+
+  async updateDonation(donation) {
+    const { id, item, quantity, address, city, state, zip_code, poc_name, 
+      poc_phone, notes, from_date, to_date } = donation;
+
+    return this._query(
+      `UPDATE Donations SET item='${item}', quantity=${Number(quantity)},
+        address='${address}', city='${city}', state='${state}',
+        zip_code='${zip_code}', poc_name='${poc_name}', poc_phone='${poc_phone}',
+        notes='${notes}', from_date='${from_date}', to_date='${to_date}'
+      WHERE id = ${id}`
+    );
+  }
+
+  async updateDonationStatus(donation) {
+    const { distributor, status } = donation;
+    return this._query(
+      `UPDATE Donations SET distributor=${distributor}, status='${status}'
+      WHERE id = ${id}`
+    );
+  }
+
+  async getDonations() {
+    return this._query('SELECT * FROM Donations');
+  }
+
+  async getDonation(donor) {
+    return this._query(`SELECT * FROM Donations WHERE donor = '${donor}' ORDER BY id DESC`);
   }
 }
