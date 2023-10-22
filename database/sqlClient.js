@@ -91,18 +91,21 @@ module.exports = class SqlClient {
   }
 
   async updateDonationStatus(donation) {
-    const { distributor, status } = donation;
+    const { id, status, distributor } = donation;
     return this._query(
-      `UPDATE Donations SET distributor=${distributor}, status='${status}'
-      WHERE id = ${id}`
-    );
+      `UPDATE Donations SET distributor='${distributor}', status='${status}' WHERE id = ${id}`);
   }
 
-  async getDonations() {
-    return this._query('SELECT * FROM Donations');
+  async getPendingDonations() {
+    return this._query(`SELECT * FROM Donations WHERE status='PENDING'`);
   }
 
-  async getDonation(donor) {
-    return this._query(`SELECT * FROM Donations WHERE donor = '${donor}' ORDER BY id DESC`);
+  async getAcceptedDonations(distributor) {
+    return this._query(
+      `SELECT * FROM Donations WHERE status='ACCEPTED' AND distributor='${distributor}'`);
+  }
+
+  async getDonorDonations(donor) {
+    return this._query(`SELECT * FROM Donations WHERE donor='${donor}' ORDER BY id DESC`);
   }
 }

@@ -137,32 +137,38 @@ app.get('/account/me', async (req, res) => {
 /******************************************************************************
  * DONATIONS TABLE QUERIES
  ******************************************************************************/
-app.post('/donation', async (req, res) => {
+app.post('/donation', async (req, res) =>
   sqlClient.addDonation(req.body)
     .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error))
-});
+);
 
 app.put('/donation', (req, res) =>
-  postgres.updateDonation(req)
+  sqlClient.updateDonation(req)
     .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error.message))
 );
 
 app.put('/donation/status', (req, res) =>
-  postgres.updateDonationStatus(req)
+  sqlClient.updateDonationStatus(req.body)
     .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error.message))
 );
 
 app.get('/donation', (req, res) =>
-  sqlClient.getDonations(req)
+  sqlClient.getPendingDonations()
     .then(response => res.status(200).send(response.recordset))
     .catch(error => res.status(500).send(error.message))
 );
 
-app.get('/donation:donor', (req, res) =>
-  sqlClient.getDonation(req.params.donor)
+app.post('/donation/accepted', (req, res) => 
+  sqlClient.getAcceptedDonations(req.body.distributor)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.post('/donation/donor', (req, res) =>
+  sqlClient.getDonorDonations(req.body.donor)
     .then(response => res.status(200).send(response.recordset))
     .catch(error => res.status(500).send(error.message))
 );
