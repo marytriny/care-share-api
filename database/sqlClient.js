@@ -30,6 +30,14 @@ module.exports = class SqlClient {
     );
   }
 
+  async getOrganizationDetails(organization) {
+    return this._query(
+      `SELECT id, role, email, organization, address, city, state, zip_code,
+        phone, poc_name, poc_phone
+      FROM Accounts WHERE organization = '${organization}'`
+    );
+  }
+
   async addAccount(user) {
     const { role, email, password, organization, address,
       city, state, zip_code, phone, poc_name, poc_phone, active } = user;
@@ -107,5 +115,9 @@ module.exports = class SqlClient {
 
   async getDonorDonations(donor) {
     return this._query(`SELECT * FROM Donations WHERE donor='${donor}' ORDER BY id DESC`);
+  }
+
+  async updateExpiredDonations() {
+    return this._query(` UPDATE Donations SET status = 'EXPIRED' WHERE status = 'PENDING' AND to_date < GETDATE()`);
   }
 }

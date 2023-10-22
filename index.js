@@ -134,6 +134,12 @@ app.get('/account/me', async (req, res) => {
   }
 })
 
+app.post('/account/org', async (req, res) =>
+  sqlClient.getOrganizationDetails(req.body.organization)
+    .then(response => res.status(200).send(response.recordset[0]))
+    .catch(error => res.status(500).send(error))
+)
+
 /******************************************************************************
  * DONATIONS TABLE QUERIES
  ******************************************************************************/
@@ -170,6 +176,12 @@ app.post('/donation/accepted', (req, res) =>
 app.post('/donation/donor', (req, res) =>
   sqlClient.getDonorDonations(req.body.donor)
     .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.put('/donation/expired', (req, res) =>
+  sqlClient.updateExpiredDonations()
+    .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error.message))
 );
 
