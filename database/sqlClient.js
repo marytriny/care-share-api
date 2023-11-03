@@ -104,17 +104,22 @@ module.exports = class SqlClient {
       `UPDATE Donations SET distributor='${distributor}', status='${status}' WHERE id = ${id}`);
   }
 
+  async getDonorDonations(donor) {
+    return this._query(`SELECT * FROM Donations WHERE donor='${donor}' ORDER BY id DESC`);
+  }
+
   async getPendingDonations() {
-    return this._query(`SELECT * FROM Donations WHERE status='PENDING'`);
+    return this._query(`SELECT * FROM Donations WHERE status='PENDING' ORDER BY id DESC`);
   }
 
   async getAcceptedDonations(distributor) {
     return this._query(
-      `SELECT * FROM Donations WHERE status='ACCEPTED' AND distributor='${distributor}'`);
+      `SELECT * FROM Donations WHERE distributor='${distributor}' AND status='ACCEPTED' ORDER BY id DESC`);
   }
 
-  async getDonorDonations(donor) {
-    return this._query(`SELECT * FROM Donations WHERE donor='${donor}' ORDER BY id DESC`);
+  async getCompletedDonations(distributor) {
+    return this._query(
+      `SELECT *, Format(from_date, 'MM/dd') monthday FROM Donations WHERE distributor='${distributor}' AND status='COMPLETED' ORDER BY id DESC`);
   }
 
   async updateExpiredDonations() {
@@ -148,7 +153,19 @@ module.exports = class SqlClient {
   async allDonationsOverTime() {
     return this._query(
       `SELECT SUM(quantity) quantity, from_date
-      FROM (SELECT quantity, Format(from_date, 'MM/dd') from_date FROM Donations) t
+      FROM (SELECT quantity, Format(from_date, 'MM/dd') from_date FROM Donations WHERE status='COMPLETED') t
+      GROUP BY from_date`
+    );
+  }
+
+  async donationsOverTime(donor) {
+    return this._query(
+      `SELECT SUM(quantity) quantity, from_date
+      FROM (
+        SELECT quantity, Format(from_date, 'MM/dd') from_date 
+        FROM Donations
+        WHERE status='COMPLETED' AND donor='${donor}'
+      ) t
       GROUP BY from_date`
     );
   }

@@ -173,6 +173,12 @@ app.post('/donation/accepted', (req, res) =>
     .catch(error => res.status(500).send(error.message))
 );
 
+app.post('/donation/completed', (req, res) => 
+  sqlClient.getCompletedDonations(req.body.distributor)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
 app.post('/donation/donor', (req, res) =>
   sqlClient.getDonorDonations(req.body.donor)
     .then(response => res.status(200).send(response.recordset))
@@ -185,11 +191,17 @@ app.put('/donation/expired', (req, res) =>
     .catch(error => res.status(500).send(error.message))
 );
 
+app.post('/donation/donorStats', (req, res) =>
+  sqlClient.donationsOverTime(req.body.donor)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
 app.get('/donation/homeData', async (req, res) => {
   const allDonationsOverTime = await sqlClient.allDonationsOverTime()
   const distributorOfTheWeek = await sqlClient.distributorOfTheWeek()
   const donorOfTheWeek = await sqlClient.donorOfTheWeek()
-  
+
   res.status(200).send({
     allDonationsOverTime: allDonationsOverTime.recordset,
     distributorOfTheWeek: distributorOfTheWeek.recordset[0].distributor,
