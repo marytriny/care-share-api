@@ -118,6 +118,38 @@ module.exports = class SqlClient {
   }
 
   async updateExpiredDonations() {
-    return this._query(` UPDATE Donations SET status = 'EXPIRED' WHERE status = 'PENDING' AND to_date < GETDATE()`);
+    return this._query(`UPDATE Donations SET status = 'EXPIRED' WHERE status = 'PENDING' AND to_date < GETDATE()`);
+  }
+
+  async donorOfTheWeek() {
+    return this._query(
+      `SELECT TOP 1 donor
+      FROM Donations
+      WHERE status='COMPLETED' 
+        AND from_date >= dateadd(day, 1-datepart(dw, getdate()), CONVERT(date,getdate())) 
+        AND from_date <  dateadd(day, 8-datepart(dw, getdate()), CONVERT(date,getdate()))
+      GROUP BY donor
+      ORDER BY SUM(quantity) desc`
+    );
+  }
+
+  async distributorOfTheWeek() {
+    return this._query(
+      `SELECT TOP 1 distributor
+      FROM Donations
+      WHERE status='COMPLETED' 
+        AND from_date >= dateadd(day, 1-datepart(dw, getdate()), CONVERT(date,getdate())) 
+        AND from_date <  dateadd(day, 8-datepart(dw, getdate()), CONVERT(date,getdate()))
+      GROUP BY distributor
+      ORDER BY SUM(quantity) desc`
+    );
+  }
+
+  async allDonationsOverTime() {
+    return this._query(
+      `SELECT SUM(quantity) quantity, from_date
+      FROM (SELECT quantity, Format(from_date, 'MM/dd') from_date FROM Donations) t
+      GROUP BY from_date`
+    );
   }
 }
