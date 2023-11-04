@@ -192,7 +192,13 @@ app.put('/donation/expired', (req, res) =>
 );
 
 app.post('/donation/donorStats', (req, res) =>
-  sqlClient.donationsOverTime(req.body.donor)
+  sqlClient.donorDonationsOverTime(req.body.donor)
+    .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.post('/donation/distributorStats', (req, res) =>
+  sqlClient.distributorDonationsOverTime(req.body.distributor)
     .then(response => res.status(200).send(response.recordset))
     .catch(error => res.status(500).send(error.message))
 );
