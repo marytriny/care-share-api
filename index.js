@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const usZips = require('us-zips')
 
 const SqlClient = require('./database/sqlClient')
 const sqlClient = new SqlClient();
@@ -140,6 +141,32 @@ app.post('/account/org', async (req, res) =>
     .catch(error => res.status(500).send(error))
 )
 
+app.get('/account/allDonors', async (req, res) => {
+  const result = await sqlClient.getAllDonors()
+  const allDonors = result.recordset.map( x => {
+    const loc = usZips[x.zip_code]
+    return {
+      ...x, 
+      latlng: [loc.latitude, loc.longitude], 
+      address: x.address + ' ' + x.city + ' ' + x.state + ' ' + x.zip_code
+    }
+  })
+  res.status(200).send(allDonors)
+});
+
+app.get('/account/allDistributors', async (req, res) => {
+  const result = await sqlClient.getAllDistributors()
+  const allDistributors = result.recordset.map( x => {
+    const loc = usZips[x.zip_code]
+    return {
+      ...x, 
+      latlng: [loc.latitude, loc.longitude], 
+      address: x.address + ' ' + x.city + ' ' + x.state + ' ' + x.zip_code
+    }
+  })
+  res.status(200).send(allDistributors)
+});
+
 /******************************************************************************
  * DONATIONS TABLE QUERIES
  ******************************************************************************/
@@ -207,11 +234,25 @@ app.get('/donation/homeData', async (req, res) => {
   const allDonationsOverTime = await sqlClient.allDonationsOverTime()
   const distributorOfTheWeek = await sqlClient.distributorOfTheWeek()
   const donorOfTheWeek = await sqlClient.donorOfTheWeek()
+  const allDistributorLocations = await sqlClient.getAllDistributors()
+  const allDistributorsAndQuantity = await sqlClient.allDistributorsAndQuantity()
 
+  const distributorQuantity = {}
+  allDistributorsAndQuantity.recordset.forEach( x => distributorQuantity[x.distributor] = x.quantity )
+  const highestQuantity = allDistributorsAndQuantity.recordset[0].quantity
+  
   res.status(200).send({
     allDonationsOverTime: allDonationsOverTime.recordset,
-    distributorOfTheWeek: distributorOfTheWeek.recordset[0].distributor,
-    donorOfTheWeek: donorOfTheWeek.recordset[0].donor
+    distributorOfTheWeek: distributorOfTheWeek.recordset[0]?.distributor,
+    donorOfTheWeek: donorOfTheWeek.recordset[0]?.donor,
+    allDistributorLocations: allDistributorLocations.recordset.map( x => {
+      const loc = usZips[x.zip_code]
+      return {
+        ...x, 
+        latlng: [loc.latitude, loc.longitude], 
+        contribution: distributorQuantity[x.organization]/highestQuantity
+      }
+    })
   })
 });
 

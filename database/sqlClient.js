@@ -18,7 +18,7 @@ module.exports = class SqlClient {
   /****************************************************************************
    * Query Accounts table
    ****************************************************************************/
-  async getAccounts() {
+  async getAccounts() { 
     return this._query('SELECT * FROM Accounts');
   }
 
@@ -36,6 +36,14 @@ module.exports = class SqlClient {
         phone, poc_name, poc_phone
       FROM Accounts WHERE organization = '${organization}'`
     );
+  }
+  
+  async getAllDistributors() {
+    return this._query(`SELECT address, city, state, zip_code, organization FROM Accounts WHERE role = 'DISTRIBUTOR'`);
+  }
+
+  async getAllDonors() {
+    return this._query(`SELECT address, city, state, zip_code, organization FROM Accounts WHERE role = 'DONOR'`);
   }
 
   async addAccount(user) {
@@ -150,6 +158,16 @@ module.exports = class SqlClient {
     );
   }
 
+  async allDistributorsAndQuantity() {
+    return this._query(
+      `SELECT distributor, SUM(quantity) as quantity
+      FROM Donations
+      WHERE status='COMPLETED' 
+      GROUP BY distributor
+      ORDER BY SUM(quantity) desc`
+    );
+  }
+  
   async allDonationsOverTime() {
     return this._query(
       `SELECT SUM(quantity) quantity, from_date
