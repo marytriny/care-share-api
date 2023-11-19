@@ -36,13 +36,13 @@ module.exports = class SqlClient {
   
   async getAllDistributors() {
     return this._query(
-      `SELECT organization, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      `SELECT organization, zip_code, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
       FROM Accounts WHERE role = 'DISTRIBUTOR'`);
   }
 
   async getAllDonors() {
     return this._query(
-      `SELECT organization, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      `SELECT organization, zip_code, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
       FROM Accounts WHERE role = 'DONOR'`);
   }
 
@@ -81,25 +81,25 @@ module.exports = class SqlClient {
    * Query Donations table
    ****************************************************************************/
   async addDonation(donation) {
-    const { item, quantity, donor, address, city, state, zip_code, poc_name, 
+    const { item, quantity, value, donor, address, city, state, zip_code, poc_name, 
       poc_phone, notes, from_date, to_date } = donation;
 
     return this._query(
-      `INSERT INTO Donations (item, quantity, donor, address, city, state,
+      `INSERT INTO Donations (item, quantity, value, donor, address, city, state,
         zip_code, poc_name, poc_phone, notes, from_date, to_date, status)
-      VALUES ( '${item}', ${Number(quantity)}, '${donor}', '${address}',
+      VALUES ( '${item}', ${Number(quantity)}, ${Number(value)}, '${donor}', '${address}',
       '${city}', '${state}', '${zip_code}', '${poc_name}', '${poc_phone}', 
       '${notes}', '${from_date}', '${to_date}', 'PENDING' )`
     );
   }
 
   async updateDonation(donation) {
-    const { id, item, quantity, address, city, state, zip_code, poc_name, 
+    const { id, item, quantity, value, address, city, state, zip_code, poc_name, 
       poc_phone, notes, from_date, to_date } = donation;
 
     return this._query(
       `UPDATE Donations SET item='${item}', quantity=${Number(quantity)},
-        address='${address}', city='${city}', state='${state}',
+        value=${Number(value)}, address='${address}', city='${city}', state='${state}',
         zip_code='${zip_code}', poc_name='${poc_name}', poc_phone='${poc_phone}',
         notes='${notes}', from_date='${from_date}', to_date='${to_date}'
       WHERE id = ${id}`
@@ -149,7 +149,7 @@ module.exports = class SqlClient {
         AND from_date >= dateadd(day, 1-datepart(dw, getdate()), CONVERT(date,getdate())) 
         AND from_date <  dateadd(day, 8-datepart(dw, getdate()), CONVERT(date,getdate()))
       GROUP BY donor
-      ORDER BY SUM(quantity) desc`
+      ORDER BY SUM(value) desc`
     );
   }
 
@@ -161,33 +161,33 @@ module.exports = class SqlClient {
         AND from_date >= dateadd(day, 1-datepart(dw, getdate()), CONVERT(date,getdate())) 
         AND from_date <  dateadd(day, 8-datepart(dw, getdate()), CONVERT(date,getdate()))
       GROUP BY distributor
-      ORDER BY SUM(quantity) desc`
+      ORDER BY SUM(value) desc`
     );
   }
 
-  async allDistributorsAndQuantity() {
+  async allDistributorsContributions() {
     return this._query(
-      `SELECT distributor, SUM(quantity) as quantity
+      `SELECT distributor, SUM(value) as value
       FROM Donations
       WHERE status='COMPLETED' 
       GROUP BY distributor
-      ORDER BY SUM(quantity) desc`
+      ORDER BY SUM(value) desc`
     );
   }
   
   async allDonationsOverTime() {
     return this._query(
-      `SELECT SUM(quantity) quantity, from_date
-      FROM (SELECT quantity, Format(from_date, 'MM/dd') from_date FROM Donations WHERE status='COMPLETED') t
+      `SELECT SUM(value) value, from_date
+      FROM (SELECT value, Format(from_date, 'MM/dd') from_date FROM Donations WHERE status='COMPLETED') t
       GROUP BY from_date`
     );
   }
 
   async donorDonationsOverTime(donor) {
     return this._query(
-      `SELECT SUM(quantity) quantity, from_date
+      `SELECT SUM(value) value, from_date
       FROM (
-        SELECT quantity, Format(from_date, 'MM/dd') from_date 
+        SELECT value, Format(from_date, 'MM/dd') from_date 
         FROM Donations
         WHERE status='COMPLETED' AND donor='${donor}'
       ) t
@@ -197,9 +197,9 @@ module.exports = class SqlClient {
 
   async distributorDonationsOverTime(distributor) {
     return this._query(
-      `SELECT SUM(quantity) quantity, from_date
+      `SELECT SUM(value) value, from_date
       FROM (
-        SELECT quantity, Format(from_date, 'MM/dd') from_date 
+        SELECT value, Format(from_date, 'MM/dd') from_date 
         FROM Donations
         WHERE status='COMPLETED' AND distributor='${distributor}'
       ) t
