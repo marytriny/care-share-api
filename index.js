@@ -145,11 +145,7 @@ app.get('/account/allDonors', async (req, res) => {
   const result = await sqlClient.getAllDonors()
   const allDonors = result.recordset.map( x => {
     const loc = usZips[x.zip_code]
-    return {
-      ...x, 
-      latlng: [loc.latitude, loc.longitude], 
-      address: x.address + ' ' + x.city + ' ' + x.state + ' ' + x.zip_code
-    }
+    return { ...x, latlng: [loc.latitude, loc.longitude] }
   })
   res.status(200).send(allDonors)
 });
@@ -158,11 +154,7 @@ app.get('/account/allDistributors', async (req, res) => {
   const result = await sqlClient.getAllDistributors()
   const allDistributors = result.recordset.map( x => {
     const loc = usZips[x.zip_code]
-    return {
-      ...x, 
-      latlng: [loc.latitude, loc.longitude], 
-      address: x.address + ' ' + x.city + ' ' + x.state + ' ' + x.zip_code
-    }
+    return { ...x, latlng: [loc.latitude, loc.longitude] }
   })
   res.status(200).send(allDistributors)
 });
@@ -182,15 +174,15 @@ app.put('/donation', (req, res) =>
     .catch(error => res.status(500).send(error.message))
 );
 
-app.put('/donation/status', (req, res) =>
-  sqlClient.updateDonationStatus(req.body)
-    .then(response => res.status(200).send(response))
-    .catch(error => res.status(500).send(error.message))
-);
-
 app.get('/donation', (req, res) =>
   sqlClient.getPendingDonations()
     .then(response => res.status(200).send(response.recordset))
+    .catch(error => res.status(500).send(error.message))
+);
+
+app.put('/donation/status', (req, res) =>
+  sqlClient.updateDonationStatus(req.body)
+    .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error.message))
 );
 

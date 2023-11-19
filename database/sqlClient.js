@@ -23,27 +23,27 @@ module.exports = class SqlClient {
   }
 
   async getAccount(email) {
-    return this._query(
-      `SELECT id, role, email, organization, address, city, state, zip_code,
-      phone, poc_name, poc_phone, active, password_hash 
-      FROM Accounts WHERE email = '${email}'`
-    );
+    return this._query(`SELECT * FROM Accounts WHERE email = '${email}'`);
   }
 
   async getOrganizationDetails(organization) {
     return this._query(
-      `SELECT id, role, email, organization, address, city, state, zip_code,
-        phone, poc_name, poc_phone
+      `SELECT id, role, email, organization, phone, poc_name, poc_phone, 
+        address + ' ' + city + ' ' + state + ' ' + zip_code as address
       FROM Accounts WHERE organization = '${organization}'`
     );
   }
   
   async getAllDistributors() {
-    return this._query(`SELECT address, city, state, zip_code, organization FROM Accounts WHERE role = 'DISTRIBUTOR'`);
+    return this._query(
+      `SELECT organization, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      FROM Accounts WHERE role = 'DISTRIBUTOR'`);
   }
 
   async getAllDonors() {
-    return this._query(`SELECT address, city, state, zip_code, organization FROM Accounts WHERE role = 'DONOR'`);
+    return this._query(
+      `SELECT organization, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      FROM Accounts WHERE role = 'DONOR'`);
   }
 
   async addAccount(user) {
@@ -117,17 +117,24 @@ module.exports = class SqlClient {
   }
 
   async getPendingDonations() {
-    return this._query(`SELECT * FROM Donations WHERE status='PENDING' ORDER BY from_date DESC`);
+    return this._query(
+      `SELECT id, item, quantity, value, donor, from_date, to_date, distributor, status, 
+      poc_name, poc_phone, notes, address + ' ' + city + ' ' + state + ' ' + zip_code as address
+     FROM Donations WHERE status='PENDING' ORDER BY from_date DESC`);
   }
 
   async getAcceptedDonations(distributor) {
     return this._query(
-      `SELECT * FROM Donations WHERE distributor='${distributor}' AND status='ACCEPTED' ORDER BY from_date DESC`);
+      `SELECT id, item, quantity, value, donor, from_date, to_date, distributor, status, 
+      poc_name, poc_phone, notes, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      FROM Donations WHERE distributor='${distributor}' AND status='ACCEPTED' ORDER BY from_date DESC`);
   }
 
   async getCompletedDonations(distributor) {
     return this._query(
-      `SELECT * FROM Donations WHERE distributor='${distributor}' AND status='COMPLETED' ORDER BY from_date DESC`);
+      `SELECT id, item, quantity, value, donor, from_date, to_date, distributor, status, 
+      poc_name, poc_phone, notes, address + ' ' + city + ' ' + state + ' ' + zip_code as address 
+      FROM Donations WHERE distributor='${distributor}' AND status='COMPLETED' ORDER BY from_date DESC`);
   }
 
   async updateExpiredDonations() {
