@@ -169,7 +169,7 @@ app.post('/donation', async (req, res) =>
 );
 
 app.put('/donation', (req, res) =>
-  sqlClient.updateDonation(req)
+  sqlClient.updateDonation(req.body)
     .then(response => res.status(200).send(response))
     .catch(error => res.status(500).send(error.message))
 );
